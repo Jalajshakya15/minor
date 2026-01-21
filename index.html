@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SyllabusHub</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Defer = JS runs after HTML is parsed -->
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">SH</div>
+        <div>
+          <h1>SyllabusHub</h1>
+          <p>Fast, simple syllabus finder</p>
+        </div>
+      </div>
+
+      <!-- STEP-BY-STEP NAVIGATION: BRANCH → YEAR → SEM -->
+      <div class="controls" role="region" aria-label="finder steps">
+        <!-- Step 1: Branch -->
+        <div class="wizard-step" data-step="1">
+          <div class="step-header">
+            <div class="step-badge">1</div>
+            <div class="step-title">Choose Branch</div>
+          </div>
+          <div class="step-body">
+            <label class="muted-inline" for="branch">Branch</label>
+            <select id="branch" aria-label="Branch selector">
+              <option value="">Select branches</option>
+              <option>CSE</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Step 2: Year -->
+        <div class="wizard-step" data-step="2">
+          <div class="step-header">
+            <div class="step-badge">2</div>
+            <div class="step-title">Choose Year</div>
+          </div>
+          <div class="step-body">
+            <label class="muted-inline" for="year">Year</label>
+            <select id="year" aria-label="Year selector">
+              <option value="">Select year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Step 3: Semester + search -->
+        <div class="wizard-step" data-step="3">
+          <div class="step-header">
+            <div class="step-badge">3</div>
+            <div class="step-title">Choose Semester & Search</div>
+          </div>
+          <div class="step-body">
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+              <div style="display:flex;flex-direction:column;gap:4px;">
+                <label class="muted-inline" for="semester">Semester</label>
+                <select id="semester" aria-label="Semester selector">
+                  <option value="">Select sem</option>
+                  <option value="1">Sem 1</option>
+                  <option value="2">Sem 2</option>
+                  <option value="3">Sem 3</option>
+                  <option value="4">Sem 4</option>
+                  <option value="5">Sem 5</option>
+                  <option value="6">Sem 6</option>
+                  <option value="7">Sem 7</option>
+                  <option value="8">Sem 8</option>
+                </select>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:180px;">
+                <label class="muted-inline" for="search">Search</label>
+                <input type="search" id="search" placeholder="Search subject / course..." aria-label="Search syllabus" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Apply / Reset -->
+        <div class="controls-footer">
+          <button id="reset" class="btn ghost" title="Reset filters">Reset</button>
+          <button id="apply" class="btn" title="Apply filters">Apply</button>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid">
+      <main>
+        <div class="results-header">
+          <div>
+            <h2 style="margin:0">Available Syllabus</h2>
+            <div class="muted" id="resultCount">Showing 0 results</div>
+            <div class="active-filters muted" id="activeFilters">No filters applied.</div>
+          </div>
+          <div>
+              <label class="muted">Sort</label>
+              <select id="sort">
+                <option value="recent">Recently added</option>
+                <option value="branch">Branch A→Z</option>
+                <option value="year">Year ↑</option>
+              </select>
+              <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                <button id="main-preview" class="btn ghost">Preview</button>
+                <button id="main-download" class="btn">Download</button>
+              </div>
+          </div>
+        </div>
+
+        <div class="cards" id="cards"></div>
+      </main>
+
+      <aside class="sidebar" aria-label="Sidebar">
+        <h3>Quick stats</h3>
+        <div class="stat">
+          <span>Total syllabus</span><strong id="statTotal">0</strong>
+        </div>
+        <div class="stat">
+          <span>Branches</span><span id="statBranches">0</span>
+        </div>
+        <div class="stat">
+          <span>Last updated</span><span id="statUpdated">—</span>
+        </div>
+
+        <h3 style="margin-top:14px">Year Actions</h3>
+        <div class="year-actions" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <strong style="width:64px">Year 1</strong>
+            <button id="preview-year-1" class="btn">Preview</button>
+            <button id="download-year-1" class="btn ghost">Download</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <strong style="width:64px">Year 2</strong>
+            <button id="preview-year-2" class="btn">Preview</button>
+            <button id="download-year-2" class="btn ghost">Download</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <strong style="width:64px">Year 3</strong>
+            <button id="preview-year-3" class="btn">Preview</button>
+            <button id="download-year-3" class="btn ghost">Download</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <strong style="width:64px">Year 4</strong>
+            <button id="preview-year-4" class="btn">Preview</button>
+            <button id="download-year-4" class="btn ghost">Download</button>
+          </div>
+        </div>
+
+        <h3 style="margin-top:14px">Tips</h3>
+        <p class="muted" style="margin-top:8px">
+          Use the step-by-step navigation: first pick <em>Branch</em>, then <em>Year</em>, then <em>Semester</em>.
+          Filters apply automatically, or use <em>Apply</em> to refresh. Preview opens a quick summary, download gives the full PDF.
+        </p>
+
+        <h3 style="margin-top:14px">All PDFs</h3>
+        <ul style="margin-top:8px; padding-left: 20px;">
+          <li><a href="pdf/Sem1_Structured_Format.pdf" target="_blank">Semester 1</a></li>
+          <li><a href="pdf/Sem2_Structured_Format.pdf" target="_blank">Semester 2</a></li>
+          <li><a href="pdf/Sem3_Structured_Format.pdf" target="_blank">Semester 3</a></li>
+          <li><a href="pdf/Sem4_Structured_Format.pdf" target="_blank">Semester 4</a></li>
+          <li><a href="pdf/Sem5_Structured_Format.pdf" target="_blank">Semester 5</a></li>
+          <li><a href="pdf/Sem6_Structured_Format.pdf" target="_blank">Semester 6</a></li>
+          <li><a href="pdf/Sem7_Structured_Format.pdf" target="_blank">Semester 7</a></li>
+          <li><a href="pdf/Sem8_Structured_Format.pdf" target="_blank">Semester 8</a></li>
+        </ul>
+      </aside>
+    </section>
+
+    <footer>Demo UI • Not connected to a backend • Built for study & prototyping</footer>
+  </div>
+
+  <!-- Modal (hidden by default) -->
+  <div id="modalRoot" aria-hidden="true"></div>
+</body>
+</html>
