@@ -1,0 +1,15 @@
+{
+  "name": "syllabushub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Syllabus finder — static UI with optional Node server for deployment",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "sem1-structured-format",
+    "title": "Sem 1 Structured Format",
+    "branch": "CSE",
+    "year": 1,
+    "semester": 1,
+    "filename": "Sem1_Structured_Format.pdf",
+    "path": "pdf/Sem1_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 1 (PDF).",
+    "addedAt": "2025-12-15"
+  },
+  {
+    "id": "sem6-structured-format",
+    "title": "Sem 6 Structured Format",
+    "branch": "CSE",
+    "year": 3,
+    "semester": 6,
+    "filename": "Sem6_Structured_Format.pdf",
+    "path": "pdf/Sem6_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 6 (PDF).",
+    "addedAt": "2025-12-15"
+  },
+  {
+    "id": "sem7-structured-format",
+    "title": "Sem 7 Structured Format",
+    "branch": "CSE",
+    "year": 4,
+    "semester": 7,
+    "filename": "Sem7_Structured_Format.pdf",
+    "path": "pdf/Sem7_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 7 (PDF).",
+    "addedAt": "2025-12-15"
+  },
+  {
+    "id": "sem8-structured-format",
+    "title": "Sem 8 Structured Format",
+    "branch": "CSE",
+    "year": 4,
+    "semester": 8,
+    "filename": "Sem8_Structured_Format.pdf",
+    "path": "pdf/Sem8_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 8 (PDF).",
+    "addedAt": "2025-12-15"
+  },
+  {
+    "id": "sem4-structured-format",
+    "title": "Sem 4 Structured Format",
+    "branch": "CSE",
+    "year": 2,
+    "semester": 4,
+    "filename": "Sem4_Structured_Format.pdf",
+    "path": "pdf/Sem4_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 4 (PDF).",
+    "addedAt": "2025-12-15"
+  },
+  {
+    "id": "sem5-structured-format",
+    "title": "Sem 5 Structured Format",
+    "branch": "CSE",
+    "year": 3,
+    "semester": 5,
+    "filename": "Sem5_Structured_Format.pdf",
+    "path": "pdf/Sem5_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 5 (PDF).",
+    "addedAt": "2025-12-15"
+  },
+  {
+    "id": "sem2-structured-format",
+    "title": "Sem 2 Structured Format",
+    "branch": "CSE",
+    "year": 1,
+    "semester": 2,
+    "filename": "Sem2_Structured_Format.pdf",
+    "path": "pdf/Sem2_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 2 (PDF).",
+    "addedAt": "2025-12-15"
+  },
+  {
+    "id": "sem3-structured-format",
+    "title": "Sem 3 Structured Format",
+    "branch": "CSE",
+    "year": 2,
+    "semester": 3,
+    "filename": "Sem3_Structured_Format.pdf",
+    "path": "pdf/Sem3_Structured_Format.pdf",
+    "description": "Structured syllabus for Semester 3 (PDF).",
+    "addedAt": "2025-12-15"
+  }
+]

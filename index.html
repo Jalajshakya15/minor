@@ -1,15 +1,20 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Filter and open CSE syllabus PDFs by year and semester." />
   <title>SyllabusHub</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Defer = JS runs after HTML is parsed -->
   <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="container">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="top-bar">
+    <span class="top-bar-hint" id="dataStatus" hidden></span>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle color theme">Theme</button>
+  </div>
+  <div class="container" id="main-content">
     <header>
       <div class="brand">
         <div class="logo">SH</div>
@@ -157,7 +162,7 @@
         <h3 style="margin-top:14px">Tips</h3>
         <p class="muted" style="margin-top:8px">
           Use the step-by-step navigation: first pick <em>Branch</em>, then <em>Year</em>, then <em>Semester</em>.
-          Filters apply automatically, or use <em>Apply</em> to refresh. Preview opens a quick summary, download gives the full PDF.
+          Filters update as you change selections. <em>Preview</em> opens a summary dialog; <em>Download</em> opens the PDF in a new tab.
         </p>
 
         <h3 style="margin-top:14px">All PDFs</h3>
@@ -174,7 +179,7 @@
       </aside>
     </section>
 
-    <footer>Demo UI • Not connected to a backend • Built for study & prototyping</footer>
+    <footer>SyllabusHub • Run <code>npm start</code> for a local server (optional API catalog). PDF files live in <code>pdf/</code>.</footer>
   </div>
 
   <!-- Modal (hidden by default) -->

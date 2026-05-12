@@ -1,530 +1,470 @@
-// Simple card rendering + preview/download (pure JS)
-(function(){
-  const sample = [
-    { id: 'sem1', branch: 'CSE', year: 1, semester:1, title: 'Sem 1 Structured Format', description: 'Structured syllabus for Semester 1 (PDF).', addedAt: '2025-12-15', pdf: 'assets/pdfs/sem1-structured.pdf' },
-    { id: 'sem2', branch: 'CSE', year: 1, semester:2, title: 'Sem 2 Structured Format', description: 'Structured syllabus for Semester 2 (PDF).', addedAt: '2025-12-15', pdf: 'assets/pdfs/sem2-structured.pdf' },
-    { id: 'sem4', branch: 'CSE', year: 2, semester:4, title: 'Sem 4 Structured Format', description: 'Structured syllabus for Semester 4 (PDF).', addedAt: '2025-12-15', pdf: 'assets/pdfs/sem4-structured.pdf' },
-    { id: 'sem5', branch: 'CSE', year: 3, semester:5, title: 'Sem 5 Structured Format', description: 'Structured syllabus for Semester 5 (PDF).', addedAt: '2025-12-15', pdf: 'assets/pdfs/sem5-structured.pdf' }
+/**
+ * SyllabusHub — single entry, no duplicate listeners.
+ * Canonical catalog when using `npm start`: `data/syllabi.json` (also served at GET /api/syllabi).
+ * Bundled `SYLLABI` below is the offline fallback when opening index.html over file://.
+ */
+(function () {
+  'use strict';
+
+  const SYLLABI = [
+    {
+      id: 'sem1-structured-format',
+      title: 'Sem 1 Structured Format',
+      branch: 'CSE',
+      year: 1,
+      semester: 1,
+      filename: 'Sem1_Structured_Format.pdf',
+      path: 'pdf/Sem1_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 1 (PDF).',
+      addedAt: '2025-12-15',
+    },
+    {
+      id: 'sem6-structured-format',
+      title: 'Sem 6 Structured Format',
+      branch: 'CSE',
+      year: 3,
+      semester: 6,
+      filename: 'Sem6_Structured_Format.pdf',
+      path: 'pdf/Sem6_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 6 (PDF).',
+      addedAt: '2025-12-15',
+    },
+    {
+      id: 'sem7-structured-format',
+      title: 'Sem 7 Structured Format',
+      branch: 'CSE',
+      year: 4,
+      semester: 7,
+      filename: 'Sem7_Structured_Format.pdf',
+      path: 'pdf/Sem7_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 7 (PDF).',
+      addedAt: '2025-12-15',
+    },
+    {
+      id: 'sem8-structured-format',
+      title: 'Sem 8 Structured Format',
+      branch: 'CSE',
+      year: 4,
+      semester: 8,
+      filename: 'Sem8_Structured_Format.pdf',
+      path: 'pdf/Sem8_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 8 (PDF).',
+      addedAt: '2025-12-15',
+    },
+    {
+      id: 'sem4-structured-format',
+      title: 'Sem 4 Structured Format',
+      branch: 'CSE',
+      year: 2,
+      semester: 4,
+      filename: 'Sem4_Structured_Format.pdf',
+      path: 'pdf/Sem4_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 4 (PDF).',
+      addedAt: '2025-12-15',
+    },
+    {
+      id: 'sem5-structured-format',
+      title: 'Sem 5 Structured Format',
+      branch: 'CSE',
+      year: 3,
+      semester: 5,
+      filename: 'Sem5_Structured_Format.pdf',
+      path: 'pdf/Sem5_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 5 (PDF).',
+      addedAt: '2025-12-15',
+    },
+    {
+      id: 'sem2-structured-format',
+      title: 'Sem 2 Structured Format',
+      branch: 'CSE',
+      year: 1,
+      semester: 2,
+      filename: 'Sem2_Structured_Format.pdf',
+      path: 'pdf/Sem2_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 2 (PDF).',
+      addedAt: '2025-12-15',
+    },
+    {
+      id: 'sem3-structured-format',
+      title: 'Sem 3 Structured Format',
+      branch: 'CSE',
+      year: 2,
+      semester: 3,
+      filename: 'Sem3_Structured_Format.pdf',
+      path: 'pdf/Sem3_Structured_Format.pdf',
+      description: 'Structured syllabus for Semester 3 (PDF).',
+      addedAt: '2025-12-15',
+    },
   ];
 
-  // DOM refs
-  const cardsRoot = document.getElementById('cards');
-  const resultCount = document.getElementById('resultCount');
-  const statTotal = document.getElementById('statTotal');
-  const statBranches = document.getElementById('statBranches');
-  const statUpdated = document.getElementById('statUpdated');
+  /** @type {typeof SYLLABI} */
+  let syllabi = SYLLABI.slice();
+  let currentList = [];
+
   const branchEl = document.getElementById('branch');
   const yearEl = document.getElementById('year');
   const semEl = document.getElementById('semester');
   const searchEl = document.getElementById('search');
+  const cardsEl = document.getElementById('cards');
+  const resultCountEl = document.getElementById('resultCount');
+  const statTotal = document.getElementById('statTotal');
+  const statBranches = document.getElementById('statBranches');
+  const statUpdated = document.getElementById('statUpdated');
+  const sortEl = document.getElementById('sort');
   const applyBtn = document.getElementById('apply');
   const resetBtn = document.getElementById('reset');
-  const sortEl = document.getElementById('sort');
-  const mainPreview = document.getElementById('main-preview');
-  const mainDownload = document.getElementById('main-download');
+  const modalRoot = document.getElementById('modalRoot');
+  const activeFiltersEl = document.getElementById('activeFilters');
+  const mainPreviewBtn = document.getElementById('main-preview');
+  const mainDownloadBtn = document.getElementById('main-download');
+  const themeToggle = document.getElementById('themeToggle');
+  const dataStatusEl = document.getElementById('dataStatus');
 
-  let currentList = sample.slice();
-
-  function formatDate(iso){
-    if(!iso) return '—';
+  function formatDate(iso) {
+    if (!iso) return '—';
     const d = new Date(iso);
-    return d.toLocaleDateString();
+    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString();
   }
 
-  function render(list){
-    currentList = list.slice();
-    cardsRoot.innerHTML = '';
-    if(!list.length){
-      cardsRoot.innerHTML = '<div class="muted">No results found.</div>';
-      resultCount.textContent = 'Showing 0 results';
-      statTotal.textContent = '0';
+  function unique(arr) {
+    return Array.from(new Set(arr));
+  }
+
+  function pdfHref(s) {
+    return s.path || s.pdf || '';
+  }
+
+  function searchHaystack(x) {
+    const parts = [x.title, x.description, x.short, x.code, x.branch]
+      .filter(Boolean)
+      .join(' ');
+    return parts.toLowerCase();
+  }
+
+  function getFilterSummary() {
+    const parts = [];
+    if (branchEl.value) parts.push(`Branch: ${branchEl.value}`);
+    if (yearEl.value) parts.push(`Year: ${yearEl.options[yearEl.selectedIndex].text}`);
+    if (semEl.value) parts.push(`Sem: ${semEl.options[semEl.selectedIndex].text}`);
+    if ((searchEl.value || '').trim()) parts.push(`Search: "${searchEl.value.trim()}"`);
+    if (!parts.length) return 'No filters applied.';
+    return parts.join(' • ');
+  }
+
+  function updateActiveFiltersSummary() {
+    if (activeFiltersEl) activeFiltersEl.textContent = getFilterSummary();
+  }
+
+  function syncStepState() {
+    const hasBranch = !!branchEl.value;
+    const hasYear = !!yearEl.value;
+    yearEl.disabled = !hasBranch;
+    semEl.disabled = !hasYear;
+  }
+
+  function downloadPdf(syllabus) {
+    const href = pdfHref(syllabus);
+    if (!href) {
+      window.alert('No PDF path is configured for this syllabus.');
       return;
     }
+    window.open(href, '_blank', 'noopener,noreferrer');
+  }
 
-    list.forEach(item => {
+  function openPdfInNewTab(syllabus) {
+    downloadPdf(syllabus);
+  }
+
+  function renderCards(list) {
+    cardsEl.innerHTML = '';
+    currentList = list.slice();
+    if (!list.length) {
+      cardsEl.innerHTML = '<div class="muted">No syllabi found. Try different filters.</div>';
+      resultCountEl.textContent = 'Showing 0 results';
+      return;
+    }
+    resultCountEl.textContent = `Showing ${list.length} result${list.length > 1 ? 's' : ''}`;
+    list.forEach((s) => {
       const card = document.createElement('article');
       card.className = 'card';
+      const added = s.addedAt || s.added || '';
+      const desc = s.description || s.short || '';
       card.innerHTML = `
         <div class="meta">
-          <div class="chip chip-soft">${item.branch}</div>
-          <div class="chip">Y${item.year} • Sem ${item.semester}</div>
-          <div style="margin-left:auto" class="muted">${formatDate(item.addedAt)}</div>
+          <div class="chip">${escapeHtml(s.branch || '')}</div>
+          <div class="chip">Y${s.year || ''} • Sem ${s.semester || ''}</div>
+          ${s.code ? `<div class="chip chip-soft">${escapeHtml(s.code)}</div>` : ''}
+          <div style="margin-left:auto" class="muted">${formatDate(added)}</div>
         </div>
-        <h3 class="title">${item.title}</h3>
-        <div class="desc">${item.description}</div>
+        <h3 class="title">${escapeHtml(s.title)}</h3>
+        <div class="desc">${escapeHtml(desc)}</div>
+        <div class="muted" style="font-size:12px;margin-bottom:8px;">
+          ${s.level ? `Level: <strong>${escapeHtml(String(s.level))}</strong>` : ''}
+          ${s.credits ? ` • Credits: <strong>${escapeHtml(String(s.credits))}</strong>` : ''}
+        </div>
         <div class="actions">
-          <a class="download" href="${item.pdf}" download="${item.id}.pdf">Download</a>
-          <button class="preview" data-href="${item.pdf}">Preview</button>
+          <button type="button" class="download">Download</button>
+          <button type="button" class="preview">Preview</button>
         </div>
       `;
-      cardsRoot.appendChild(card);
+      const downloadBtn = card.querySelector('.download');
+      const previewBtn = card.querySelector('.preview');
+      if (downloadBtn) downloadBtn.addEventListener('click', () => downloadPdf(s));
+      if (previewBtn) previewBtn.addEventListener('click', () => openModal(s));
+      cardsEl.appendChild(card);
     });
-
-    resultCount.textContent = `Showing ${list.length} result${list.length>1?'s':''}`;
-    statTotal.textContent = String(sample.length);
-    statBranches.textContent = String(new Set(sample.map(s=>s.branch)).size);
-    const latest = sample.slice().sort((a,b)=>new Date(b.addedAt)-new Date(a.addedAt))[0];
-    statUpdated.textContent = latest ? formatDate(latest.addedAt) : '—';
-
-    // attach events
-    cardsRoot.querySelectorAll('.preview').forEach(btn=>{
-      btn.addEventListener('click', (e)=>{
-        const href = e.currentTarget.dataset.href;
-        if(href) window.open(href, '_blank', 'noopener');
-      });
-    });
-    // download anchors already have download attribute
   }
 
-  // filtering
-  function applyFilters(){
-    const b = branchEl.value;
-    const y = yearEl.value;
-    const s = semEl.value;
-    const q = (searchEl.value||'').trim().toLowerCase();
-    let list = sample.slice();
-    if(b) list = list.filter(x=>x.branch===b);
-    if(y) list = list.filter(x=>String(x.year)===String(y));
-    if(s) list = list.filter(x=>String(x.semester)===String(s));
-    if(q) list = list.filter(x=> (x.title+' '+x.description).toLowerCase().includes(q));
-
-    // sort
-    const mode = sortEl.value;
-    if(mode==='branch') list.sort((a,b)=> (a.branch||'').localeCompare(b.branch||''));
-    else if(mode==='year') list.sort((a,b)=> (a.year||0)-(b.year||0));
-    else list.sort((a,b)=> new Date(b.addedAt)-new Date(a.addedAt));
-
-    render(list);
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
-  // main controls
-  applyBtn.addEventListener('click', applyFilters);
-  resetBtn.addEventListener('click', ()=>{ branchEl.value=''; yearEl.value=''; semEl.value=''; searchEl.value=''; sortEl.value='recent'; applyFilters(); });
-  sortEl.addEventListener('change', applyFilters);
-  [branchEl, yearEl, semEl].forEach(el=>el.addEventListener('change', applyFilters));
-  searchEl.addEventListener('input', ()=>{ setTimeout(applyFilters, 250); });
+  function applyFilters() {
+    const branch = branchEl.value;
+    const year = yearEl.value;
+    const sem = semEl.value;
+    const q = (searchEl.value || '').trim().toLowerCase();
+    let list = syllabi.slice();
 
-  // main page preview/download operate on first result
-  if(mainPreview) mainPreview.addEventListener('click', ()=>{ if(currentList[0]) window.open(currentList[0].pdf, '_blank', 'noopener'); else alert('No results to preview'); });
-  if(mainDownload) mainDownload.addEventListener('click', ()=>{ if(currentList[0]){ const a=document.createElement('a'); a.href=currentList[0].pdf; a.download=currentList[0].id+'.pdf'; document.body.appendChild(a); a.click(); a.remove(); } else alert('No results to download'); });
+    if (branch) list = list.filter((x) => x.branch === branch);
+    if (year) list = list.filter((x) => String(x.year) === String(year));
+    if (sem) list = list.filter((x) => String(x.semester) === String(sem));
+    if (q) list = list.filter((x) => searchHaystack(x).includes(q));
 
-  // year quick actions
-  for(let y=1;y<=4;y++){
-    const p = document.getElementById('preview-year-'+y);
-    const d = document.getElementById('download-year-'+y);
-    if(p) p.addEventListener('click', ()=>{ const s=sample.find(x=>Number(x.year)===y); if(s) window.open(s.pdf,'_blank','noopener'); else alert('No syllabus found for Year '+y); });
-    if(d) d.addEventListener('click', ()=>{ const s=sample.find(x=>Number(x.year)===y); if(s){ const a=document.createElement('a'); a.href=s.pdf; a.download=s.id+'.pdf'; document.body.appendChild(a); a.click(); a.remove(); } else alert('No PDF for Year '+y); });
+    const sort = sortEl.value;
+    if (sort === 'branch') list.sort((a, b) => (a.branch || '').localeCompare(b.branch || ''));
+    else if (sort === 'year') list.sort((a, b) => (a.year || 0) - (b.year || 0));
+    else list.sort((a, b) => new Date(b.addedAt || b.added || 0) - new Date(a.addedAt || a.added || 0));
+
+    renderCards(list);
+    updateStats();
+    updateActiveFiltersSummary();
   }
 
-  // initial render
-  render(sample);
-})();
-// Single dataset used by the app (includes attached PDFs)
-const syllabi = [
-  {
-    id: 'sem1-structured-format',
-    title: 'Sem 1 Structured Format',
-    branch: 'CSE',
-    year: 1,
-    semester: 1,
-    filename: 'Sem1_Structured_Format.pdf',
-    path: 'pdf/Sem1_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 1 (PDF).',
-    addedAt: '2025-12-15'
-  },
-  {
-    id: 'sem6-structured-format',
-    title: 'Sem 6 Structured Format',
-    branch: 'CSE',
-    year: 3,
-    semester: 6,
-    filename: 'Sem6_Structured_Format.pdf',
-    path: 'pdf/Sem6_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 6 (PDF).',
-    addedAt: '2025-12-15'
-  },
-  {
-    id: 'sem7-structured-format',
-    title: 'Sem 7 Structured Format',
-    branch: 'CSE',
-    year: 4,
-    semester: 7,
-    filename: 'Sem7_Structured_Format.pdf',
-    path: 'pdf/Sem7_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 7 (PDF).',
-    addedAt: '2025-12-15'
-  },
-  {
-    id: 'sem8-structured-format',
-    title: 'Sem 8 Structured Format',
-    branch: 'CSE',
-    year: 4,
-    semester: 8,
-    filename: 'Sem8_Structured_Format.pdf',
-    path: 'pdf/Sem8_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 8 (PDF).',
-    addedAt: '2025-12-15'
-  },
-  {
-    id: 'sem4-structured-format',
-    title: 'Sem 4 Structured Format',
-    branch: 'CSE',
-    year: 2,
-    semester: 4,
-    filename: 'Sem4_Structured_Format.pdf',
-    path: 'pdf/Sem4_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 4 (PDF).',
-    addedAt: '2025-12-15'
-  },
-  {
-    id: 'sem5-structured-format',
-    title: 'Sem 5 Structured Format',
-    branch: 'CSE',
-    year: 3,
-    semester: 5,
-    filename: 'Sem5_Structured_Format.pdf',
-    path: 'pdf/Sem5_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 5 (PDF).',
-    addedAt: '2025-12-15'
-  },
-  {
-    id: 'sem2-structured-format',
-    title: 'Sem 2 Structured Format',
-    branch: 'CSE',
-    year: 1,
-    semester: 2,
-    filename: 'Sem2_Structured_Format.pdf',
-    path: 'pdf/Sem2_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 2 (PDF).',
-    addedAt: '2025-12-15'
-  },
-    {
-    id: 'sem3-structured-format',
-    title: 'Sem 3 Structured Format',
-    branch: 'CSE',
-    year: 2,
-    semester: 3,
-    filename: 'Sem3_Structured_Format.pdf',
-    path: 'pdf/Sem3_Structured_Format.pdf',
-    description: 'Structured syllabus for Semester 3 (PDF).',
-    addedAt: '2025-12-15'
-  },
-];
-
-// DOMContentLoaded initialization moved to bottom; app uses the unified handlers below
-
-/* sampleSyllabi removed — app now uses single `syllabi` dataset above */
-
-/* ---------- DOM refs ---------- */
-const branchEl = document.getElementById('branch');
-const yearEl = document.getElementById('year');
-const semEl = document.getElementById('semester');
-const searchEl = document.getElementById('search');
-const cardsEl = document.getElementById('cards');
-const resultCountEl = document.getElementById('resultCount');
-const statTotal = document.getElementById('statTotal');
-const statBranches = document.getElementById('statBranches');
-const statUpdated = document.getElementById('statUpdated');
-const sortEl = document.getElementById('sort');
-const applyBtn = document.getElementById('apply');
-const resetBtn = document.getElementById('reset');
-const modalRoot = document.getElementById('modalRoot');
-const activeFiltersEl = document.getElementById('activeFilters'); // optional (if present in HTML)
-const mainPreviewBtn = document.getElementById('main-preview');
-const mainDownloadBtn = document.getElementById('main-download');
-
-/* ---------- Utility functions ---------- */
-function formatDate(iso){
-  if(!iso) return '—';
-  const d = new Date(iso);
-  return d.toLocaleDateString();
-}
-function unique(arr){
-  return Array.from(new Set(arr));
-}
-
-/* Build a human-readable filters summary */
-function getFilterSummary() {
-  const parts = [];
-  if (branchEl.value) parts.push(`Branch: ${branchEl.value}`);
-  if (yearEl.value) parts.push(`Year: ${yearEl.options[yearEl.selectedIndex].text}`);
-  if (semEl.value) parts.push(`Sem: ${semEl.options[semEl.selectedIndex].text}`);
-  if ((searchEl.value || '').trim()) parts.push(`Search: "${searchEl.value.trim()}"`);
-  if (!parts.length) return "No filters applied.";
-  return parts.join(" • ");
-}
-
-function updateActiveFiltersSummary(){
-  if (!activeFiltersEl) return; // if not in HTML, safely skip
-  activeFiltersEl.textContent = getFilterSummary();
-}
-
-/* Enable/disable steps logically */
-function syncStepState(){
-  const hasBranch = !!branchEl.value;
-  const hasYear = !!yearEl.value;
-
-  yearEl.disabled = !hasBranch;
-  semEl.disabled = !hasYear;
-}
-
-/* Use a real PDF if available, otherwise show alert */
-function downloadSimulated(syllabus){
-  const href = syllabus.path || syllabus.pdf;
-  if (!href){
-    alert("No PDF uploaded yet for this subject.");
-    return;
+  function resetFilters() {
+    branchEl.value = '';
+    yearEl.value = '';
+    semEl.value = '';
+    searchEl.value = '';
+    sortEl.value = 'recent';
+    syncStepState();
+    applyFilters();
   }
-  // Open PDF in a new tab/window (_blank) so user can view or use browser's download
-  window.open(href, '_blank', 'noopener,noreferrer');
-}
 
-// Open a PDF in a new tab for previewing
-function openPdfInNewTab(syllabus){
-  const href = syllabus.path || syllabus.pdf;
-  if (!href){
-    alert("No PDF available for preview.");
-    return;
+  function updateStats() {
+    statTotal.textContent = String(syllabi.length);
+    statBranches.textContent = String(unique(syllabi.map((s) => s.branch)).length);
+    const latest = syllabi
+      .slice()
+      .sort((a, b) => new Date(b.addedAt || b.added || 0) - new Date(a.addedAt || a.added || 0))[0];
+    statUpdated.textContent = latest ? formatDate(latest.addedAt || latest.added) : '—';
   }
-  window.open(href, '_blank', 'noopener,noreferrer');
-}
 
-/* ---------- Render logic ---------- */
-function renderCards(list){
-  cardsEl.innerHTML = '';
-  // remember current rendered list for main-page actions
-  currentList = list.slice();
-  if(!list.length){
-    cardsEl.innerHTML = '<div class="muted">No syllabi found. Try different filters.</div>';
-    resultCountEl.textContent = 'Showing 0 results';
-    return;
-  }
-  resultCountEl.textContent = `Showing ${list.length} result${list.length>1?'s':''}`;
-  list.forEach(s => {
-    const card = document.createElement('article');
-    card.className = 'card';
-    const added = s.addedAt || s.added || '';
-    const desc = s.description || s.short || '';
-    card.innerHTML = `
-      <div class="meta">
-        <div class="chip">${s.branch || ''}</div>
-        <div class="chip">Y${s.year || ''} • Sem ${s.semester || ''}</div>
-        ${s.code ? `<div class="chip chip-soft">${s.code}</div>` : ''}
-        <div style="margin-left:auto" class="muted">${formatDate(added)}</div>
-      </div>
-      <h3 class="title">${s.title}</h3>
-      <div class="desc">${desc}</div>
-      <div class="muted" style="font-size:12px;margin-bottom:8px;">
-        ${s.level ? `Level: <strong>${s.level}</strong>` : ''} 
-        ${s.credits ? `• Credits: <strong>${s.credits}</strong>` : ''}
-      </div>
-      <div class="actions">
-        <button class="download" data-id="${s.id}">Download</button>
-        <button class="preview" data-id="${s.id}">Preview</button>
-      </div>
-    `;
-    cardsEl.appendChild(card);
-  });
-
-  // attach listeners
-  cardsEl.querySelectorAll('.download').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const id = e.currentTarget.dataset.id;
-      const s = syllabi.find(x=>String(x.id)===String(id));
-      if(s) downloadSimulated(s);
-    });
-  });
-  cardsEl.querySelectorAll('.preview').forEach(btn=>{
-    btn.addEventListener('click', e=>{
-      const id = e.currentTarget.dataset.id;
-      const s = syllabi.find(x=>String(x.id)===String(id));
-      if(s) openPdfInNewTab(s);
-    });
-  });
-}
-
-// track last rendered list
-let currentList = [];
-
-/* ---------- Filtering & sorting ---------- */
-function applyFilters(){
-  const branch = branchEl.value;
-  const year = yearEl.value;
-  const sem = semEl.value;
-  const q = (searchEl.value||'').trim().toLowerCase();
-  let list = syllabi.slice();
-
-  if(branch) list = list.filter(x => x.branch === branch);
-  if(year) list = list.filter(x => String(x.year) === String(year));
-  if(sem) list = list.filter(x => String(x.semester) === String(sem));
-  if(q) list = list.filter(x => (x.title + ' ' + x.short).toLowerCase().includes(q));
-
-  // sorting
-  const sort = sortEl.value;
-  if(sort === 'branch') list.sort((a,b)=> (a.branch||'').localeCompare(b.branch||''));
-  else if(sort === 'year') list.sort((a,b)=> (a.year||0) - (b.year||0));
-  else list.sort((a,b)=> new Date(b.addedAt || b.added || 0) - new Date(a.addedAt || a.added || 0)); // recent first
-
-  renderCards(list);
-  updateStats(list);
-  updateActiveFiltersSummary();
-}
-
-/* Reset all filters + state */
-function resetFilters(){
-  branchEl.value = '';
-  yearEl.value = '';
-  semEl.value = '';
-  searchEl.value = '';
-  sortEl.value = 'recent';
-  syncStepState();
-  applyFilters();
-}
-
-/* ---------- Stats ---------- */
-function updateStats(currentList){
-  statTotal.textContent = syllabi.length;
-  statBranches.textContent = unique(syllabi.map(s=>s.branch)).length;
-
-  const latest = syllabi.slice().sort((a,b)=> new Date(b.addedAt || b.added || 0) - new Date(a.addedAt || a.added || 0))[0];
-  statUpdated.textContent = latest ? formatDate(latest.addedAt || latest.added) : '—';
-}
-
-/* ---------- Modal ---------- */
-function openModal(syllabus){
-  modalRoot.innerHTML = `
-    <div class="modal-backdrop" role="dialog" aria-modal="true">
-      <div class="modal">
-        <div class="modal-head">
-          <div>
-            <strong>${syllabus.title}</strong>
-            <div class="muted" style="margin-top:6px">
-              ${syllabus.code ? syllabus.code + " • " : ""}${syllabus.branch} • Year ${syllabus.year} • Sem ${syllabus.semester}
+  function openModal(syllabus) {
+    const overview = syllabus.description || syllabus.short || 'No description provided.';
+    modalRoot.innerHTML = `
+      <div class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal">
+          <div class="modal-head">
+            <div>
+              <strong id="modalTitle">${escapeHtml(syllabus.title)}</strong>
+              <div class="muted" style="margin-top:6px">
+                ${syllabus.code ? `${escapeHtml(syllabus.code)} • ` : ''}${escapeHtml(syllabus.branch)} • Year ${syllabus.year} • Sem ${syllabus.semester}
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button type="button" id="modalOpenPdf" class="btn ghost">Open PDF</button>
+              <button type="button" id="modalDownload" class="download">Download</button>
+              <button type="button" id="modalClose" class="btn ghost">Close</button>
             </div>
           </div>
-          <div>
-            <button id="modalDownload" class="download">Download</button>
-            <button id="modalClose" class="btn ghost">Close</button>
-          </div>
+          <pre id="modalContent"></pre>
         </div>
-        <pre id="modalContent">Loading syllabus preview...</pre>
       </div>
-    </div>
-  `;
-  modalRoot.setAttribute('aria-hidden','false');
+    `;
+    modalRoot.setAttribute('aria-hidden', 'false');
 
-  const lines = [
-    `Syllabus — ${syllabus.title}`,
-    syllabus.code ? `Course Code: ${syllabus.code}` : "",
-    `Branch: ${syllabus.branch}`,
-    `Year: ${syllabus.year} • Semester: ${syllabus.semester}`,
-    syllabus.level ? `Level: ${syllabus.level}` : "",
-    syllabus.credits ? `Credits: ${syllabus.credits}` : "",
-    "",
-    "Course Overview:",
-    syllabus.short,
-    ""
-  ];
+    const lines = [
+      `Syllabus — ${syllabus.title}`,
+      syllabus.code ? `Course Code: ${syllabus.code}` : '',
+      `Branch: ${syllabus.branch}`,
+      `Year: ${syllabus.year} • Semester: ${syllabus.semester}`,
+      syllabus.level ? `Level: ${syllabus.level}` : '',
+      syllabus.credits ? `Credits: ${syllabus.credits}` : '',
+      '',
+      'Course overview:',
+      overview,
+      '',
+    ];
 
-  if (syllabus.topics && syllabus.topics.length){
-    lines.push("Major Topics:");
-    syllabus.topics.forEach(t => lines.push("- " + t));
-    lines.push("");
+    if (syllabus.topics && syllabus.topics.length) {
+      lines.push('Major topics:');
+      syllabus.topics.forEach((t) => lines.push(`- ${t}`));
+      lines.push('');
+    }
+
+    lines.push(
+      'Assessment (example):',
+      '- Midterm: 30%',
+      '- End-term: 50%',
+      '- Practicals / project: 20%',
+      '',
+      'Note:',
+      'For the full official syllabus, open the PDF using the buttons above.',
+    );
+
+    const pre = document.getElementById('modalContent');
+    if (pre) pre.textContent = lines.filter(Boolean).join('\n');
+
+    document.getElementById('modalDownload')?.addEventListener('click', () => downloadPdf(syllabus));
+    document.getElementById('modalOpenPdf')?.addEventListener('click', () => openPdfInNewTab(syllabus));
+    document.getElementById('modalClose')?.addEventListener('click', closeModal);
+
+    modalRoot.querySelector('.modal-backdrop')?.addEventListener('click', (ev) => {
+      if (ev.target.classList.contains('modal-backdrop')) closeModal();
+    });
+
+    document.addEventListener('keydown', onEsc);
   }
 
-  lines.push(
-    "Assessment (example):",
-    "- Midterm: 30%",
-    "- End-term: 50%",
-    "- Practicals / Project: 20%",
-    "",
-    "Note:",
-    "For full official syllabus and unit-wise breakdown, please refer to the attached PDF."
-  );
+  function closeModal() {
+    modalRoot.innerHTML = '';
+    modalRoot.setAttribute('aria-hidden', 'true');
+    document.removeEventListener('keydown', onEsc);
+  }
 
-  document.getElementById('modalContent').textContent = lines.join('\n');
+  function onEsc(e) {
+    if (e.key === 'Escape') closeModal();
+  }
 
-  document.getElementById('modalDownload').addEventListener('click', ()=>downloadSimulated(syllabus));
-  document.getElementById('modalClose').addEventListener('click', closeModal);
+  let searchTimeout;
+  function wireEvents() {
+    branchEl.addEventListener('change', () => {
+      syncStepState();
+      applyFilters();
+    });
+    yearEl.addEventListener('change', () => {
+      syncStepState();
+      applyFilters();
+    });
+    semEl.addEventListener('change', applyFilters);
 
-  modalRoot.querySelector('.modal-backdrop').addEventListener('click', (ev)=>{
-    if(ev.target.classList.contains('modal-backdrop')) closeModal();
-  });
+    searchEl.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(applyFilters, 280);
+    });
 
-  document.addEventListener('keydown', onEsc);
-}
+    applyBtn.addEventListener('click', applyFilters);
+    resetBtn.addEventListener('click', resetFilters);
+    sortEl.addEventListener('change', applyFilters);
 
-function closeModal(){
-  modalRoot.innerHTML = '';
-  modalRoot.setAttribute('aria-hidden','true');
-  document.removeEventListener('keydown', onEsc);
-}
+    for (let y = 1; y <= 4; y++) {
+      const prev = document.getElementById(`preview-year-${y}`);
+      const dl = document.getElementById(`download-year-${y}`);
+      if (prev) {
+        prev.addEventListener('click', () => {
+          const first = syllabi.find((x) => Number(x.year) === y);
+          if (first) openModal(first);
+          else window.alert(`No syllabus found for year ${y}.`);
+        });
+      }
+      if (dl) {
+        dl.addEventListener('click', () => {
+          const first = syllabi.find((x) => Number(x.year) === y);
+          if (first) downloadPdf(first);
+          else window.alert(`No PDF found for year ${y}.`);
+        });
+      }
+    }
 
-function onEsc(e){
-  if(e.key === 'Escape') closeModal();
-}
+    if (mainPreviewBtn) {
+      mainPreviewBtn.addEventListener('click', () => {
+        const s = currentList[0];
+        if (s) openModal(s);
+        else window.alert('No results to preview.');
+      });
+    }
+    if (mainDownloadBtn) {
+      mainDownloadBtn.addEventListener('click', () => {
+        const s = currentList[0];
+        if (s) downloadPdf(s);
+        else window.alert('No results to download.');
+      });
+    }
+  }
 
-/* ---------- Init & dynamic behaviour ---------- */
+  const THEME_KEY = 'syllabushub-theme';
 
-// auto-apply when filters change (more dynamic)
-branchEl.addEventListener('change', () => {
-  syncStepState();
-  applyFilters();
-});
-yearEl.addEventListener('change', () => {
-  syncStepState();
-  applyFilters();
-});
-semEl.addEventListener('change', applyFilters);
+  function applyTheme(theme) {
+    const t = theme === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem(THEME_KEY, t);
+    if (themeToggle) {
+      themeToggle.setAttribute('aria-label', t === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+      themeToggle.textContent = t === 'dark' ? 'Light mode' : 'Dark mode';
+    }
+  }
 
-let searchTimeout;
-searchEl.addEventListener('input', () => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(applyFilters, 300); // debounce typing
-});
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'light' || saved === 'dark') {
+      applyTheme(saved);
+      return;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      applyTheme('light');
+    } else {
+      applyTheme('dark');
+    }
+  }
 
-applyBtn.addEventListener('click', applyFilters);
-resetBtn.addEventListener('click', resetFilters);
-sortEl.addEventListener('change', applyFilters);
+  function initThemeToggle() {
+    if (!themeToggle) return;
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+    });
+  }
 
-// initial state
-syncStepState();
-updateStats(syllabi);
-applyFilters();
+  async function tryLoadRemoteData() {
+    if (window.location.protocol === 'file:') return;
+    const urls = ['/api/syllabi', 'data/syllabi.json'];
+    for (const path of urls) {
+      try {
+        const res = await fetch(path, { headers: { Accept: 'application/json' } });
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (Array.isArray(data) && data.length) {
+          syllabi = data;
+          if (dataStatusEl) {
+            dataStatusEl.textContent = path.startsWith('/api') ? 'Live catalog (API)' : 'Live catalog (JSON)';
+            dataStatusEl.hidden = false;
+          }
+          return;
+        }
+      } catch (_) {
+        /* use bundled data */
+      }
+    }
+  }
 
-// Year quick-action buttons (Preview first match, Download first match)
-for (let y = 1; y <= 4; y++) {
-  const prev = document.getElementById(`preview-year-${y}`);
-  const dl = document.getElementById(`download-year-${y}`);
-  if (prev) prev.addEventListener('click', () => {
-    const s = syllabi.find(x => Number(x.year) === y);
-    if (s) openModal(s);
-    else alert(`No syllabus found for Year ${y}`);
-  });
-  if (dl) dl.addEventListener('click', () => {
-    const s = syllabi.find(x => Number(x.year) === y);
-    if (s) downloadSimulated(s);
-    else alert(`No PDF found for Year ${y}`);
-  });
-}
-// Ensure year preview opens in new tab as well
-for (let y = 1; y <= 4; y++) {
-  const prev = document.getElementById(`preview-year-${y}`);
-  if (prev) prev.addEventListener('click', () => {
-    const s = syllabi.find(x => Number(x.year) === y);
-    if (s) openPdfInNewTab(s);
-    else alert(`No syllabus found for Year ${y}`);
-  });
-}
+  async function bootstrap() {
+    initTheme();
+    initThemeToggle();
+    await tryLoadRemoteData();
+    wireEvents();
+    syncStepState();
+    updateStats();
+    applyFilters();
+  }
 
-// Main-page Preview/Download buttons act on the first result in the current list
-if (mainPreviewBtn) mainPreviewBtn.addEventListener('click', ()=>{
-  const s = currentList && currentList[0];
-  if (s) openPdfInNewTab(s);
-  else alert('No results to preview.');
-});
-if (mainDownloadBtn) mainDownloadBtn.addEventListener('click', ()=>{
-  const s = currentList && currentList[0];
-  if (s) downloadSimulated(s);
-  else alert('No results to download.');
-});
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrap);
+  } else {
+    bootstrap();
+  }
+})();
